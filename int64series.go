@@ -5,8 +5,8 @@ import (
 	"sort"
 )
 
-// Type Int64Series represents a discrete function f(x)=y with a collection
-// of (x, y) pairs.  Each (x, y) pair represents a transition, i.e. if (x₀, y₀)
+// Int64Series represents a discrete function f(x)=y with a collection of
+// (x, y) pairs.  Each (x, y) pair represents a transition, i.e. if (x₀, y₀)
 // and (x₁, y₁) are consecute pairs, then f(x)=y₀ for x₀ ≤ x < x₁.
 type Int64Series struct {
 	points   map[int64]int64
@@ -138,19 +138,19 @@ func (s *Int64Series) Compact() {
 		return
 	}
 	s.sort()
-	new_sorted := []int64{s.sorted[0]}
+	newSorted := []int64{s.sorted[0]}
 	lastY := s.points[s.sorted[0]]
 	for i, x := range s.sorted {
 		if i > 0 {
 			if s.points[x] == lastY {
 				delete(s.points, x)
 			} else {
-				new_sorted = append(new_sorted, x)
+				newSorted = append(newSorted, x)
 				lastY = s.points[x]
 			}
 		}
 	}
-	s.sorted = new_sorted
+	s.sorted = newSorted
 }
 
 // Xs returns an ordered slice of all the x values of stored points.
@@ -195,7 +195,7 @@ func (s *Int64Series) Ceiling(x int64) (x1 int64, ok bool) {
 		return
 	}
 
-	// We explicity check for x being in the stored points so that we don't
+	// We explicitly check for x being in the stored points so that we don't
 	// have to account for the case of x₁ = x below.
 	if _, okay := s.points[x]; okay {
 		return x, true
