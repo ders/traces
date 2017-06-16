@@ -5,10 +5,10 @@ import (
 	"sort"
 )
 
-// Int64Series represents a discrete function f(x)=y with a collection of
+// Series represents a discrete function f(x)=y with a collection of
 // (x, y) pairs.  Each (x, y) pair represents a transition, i.e. if (x₀, y₀)
 // and (x₁, y₁) are consecute pairs, then f(x)=y₀ for x₀ ≤ x < x₁.
-type Int64Series struct {
+type Series struct {
 	points   map[int64]int64
 	sorted   []int64
 	unsorted []int64
@@ -17,18 +17,17 @@ type Int64Series struct {
 	// and all of the keys in sorted are in order.
 }
 
-// NewInt64Series returns a new, empty Int64Series object.
-func NewInt64Series() *Int64Series {
-	return &Int64Series{
+// NewSeries returns a new, empty Series object.
+func NewSeries() *Series {
+	return &Series{
 		points:   make(map[int64]int64),
 		sorted:   make([]int64, 0),
 		unsorted: make([]int64, 0),
 	}
 }
 
-// NewInt64SeriesData returns a new Int64Series object prefilled with the
-// data in the map.
-func NewInt64SeriesData(data map[int64]int64) *Int64Series {
+// NewSeriesData returns a new Series object prefilled with the data in the map.
+func NewSeriesData(data map[int64]int64) *Series {
 	points := make(map[int64]int64)
 	unsorted := make([]int64, 0, len(points))
 	for key, val := range data {
@@ -36,7 +35,7 @@ func NewInt64SeriesData(data map[int64]int64) *Int64Series {
 		unsorted = append(unsorted, key)
 	}
 
-	return &Int64Series{
+	return &Series{
 		points:   points,
 		sorted:   make([]int64, 0),
 		unsorted: unsorted,
@@ -44,7 +43,7 @@ func NewInt64SeriesData(data map[int64]int64) *Int64Series {
 }
 
 // sort takes any unsorted keys in s.unsorted and merges them into s.sorted.
-func (s *Int64Series) sort() {
+func (s *Series) sort() {
 	if len(s.unsorted) == 0 {
 		return
 	}
@@ -56,7 +55,7 @@ func (s *Int64Series) sort() {
 // find finds and returns the largest index i into sorted such that
 // s.sorted[i] <= x.  Returns -1 if x < s.sorted[0] or if s.sorted is
 // empty.
-func (s *Int64Series) find(x int64) int {
+func (s *Series) find(x int64) int {
 
 	if len(s.sorted) == 0 || x < s.sorted[0] {
 		return -1
@@ -82,19 +81,19 @@ func (s *Int64Series) find(x int64) int {
 }
 
 // Size returns the number of stored points in the series.
-func (s *Int64Series) Size() int {
+func (s *Series) Size() int {
 	return len(s.points)
 }
 
 // Has returns true if there is a stored point at x.
-func (s *Int64Series) Has(x int64) bool {
+func (s *Series) Has(x int64) bool {
 	_, ok := s.points[x]
 	return ok
 }
 
 // Set adds the point (x, y) to the series, replacing the existing point
 // at x if there is one.
-func (s *Int64Series) Set(x, y int64) {
+func (s *Series) Set(x, y int64) {
 	if _, ok := s.points[x]; !ok {
 		s.unsorted = append(s.unsorted, x)
 	}
@@ -104,7 +103,7 @@ func (s *Int64Series) Set(x, y int64) {
 // Get retrieves the value f(x).  If x in not a stored point in the series,
 // then f(x) is defined as f(x₀) for the largest x₀ < x.  If there is no such
 // x₀, then f(x)=0.
-func (s *Int64Series) Get(x int64) int64 {
+func (s *Series) Get(x int64) int64 {
 	if y, ok := s.points[x]; ok {
 		return y
 	}
@@ -117,7 +116,7 @@ func (s *Int64Series) Get(x int64) int64 {
 }
 
 // Remove removes the stored point at x from the series if it exists.
-func (s *Int64Series) Remove(x int64) {
+func (s *Series) Remove(x int64) {
 	if _, ok := s.points[x]; !ok {
 		return
 	}
@@ -133,7 +132,7 @@ func (s *Int64Series) Remove(x int64) {
 // does not affect the value of the function.
 //
 // Compact never removes the first point, even if the y value is 0.
-func (s *Int64Series) Compact() {
+func (s *Series) Compact() {
 	if len(s.points) < 2 {
 		return
 	}
@@ -155,7 +154,7 @@ func (s *Int64Series) Compact() {
 
 // Xs returns an ordered slice of all the x values of stored points.
 // Use this method along with Get() to iterate through (x, f(x)) in order.
-func (s *Int64Series) Xs() []int64 {
+func (s *Series) Xs() []int64 {
 	s.sort()
 	xs := make([]int64, len(s.sorted))
 	copy(xs, s.sorted)
@@ -164,7 +163,7 @@ func (s *Int64Series) Xs() []int64 {
 
 // X0 returns the x value of the lowest stored point.  This is equivalent
 // to Xs[0].  Returns 0 if there are no stored points.
-func (s *Int64Series) X0() int64 {
+func (s *Series) X0() int64 {
 	s.sort()
 	if len(s.sorted) == 0 {
 		return 0
@@ -174,7 +173,7 @@ func (s *Int64Series) X0() int64 {
 
 // Floor returns the largest x₀ from the stored points such that x₀ ≤ x.
 // If there is no such x₀, then 0 is returned along with the ok = false.
-func (s *Int64Series) Floor(x int64) (x0 int64, ok bool) {
+func (s *Series) Floor(x int64) (x0 int64, ok bool) {
 	if len(s.points) == 0 {
 		return
 	}
@@ -190,7 +189,7 @@ func (s *Int64Series) Floor(x int64) (x0 int64, ok bool) {
 
 // Ceiling returns the smallest x₁ from the stored points such that x₁ ≥ x.
 // If there is no such x₁ then 0 is returned along with ok = false.
-func (s *Int64Series) Ceiling(x int64) (x1 int64, ok bool) {
+func (s *Series) Ceiling(x int64) (x1 int64, ok bool) {
 	if len(s.points) == 0 {
 		return
 	}
@@ -210,8 +209,8 @@ func (s *Int64Series) Ceiling(x int64) (x1 int64, ok bool) {
 	return s.sorted[i], true
 }
 
-// Copy returns a new Int64Series which is a copy of s.
-func (s *Int64Series) Copy() *Int64Series {
+// Copy returns a new Series which is a copy of s.
+func (s *Series) Copy() *Series {
 	// Sort first to avoid having to sort twice later (once on s and once
 	// on the copy).  As a side effect, we now don't have to copy s.unsorted.
 	s.sort()
@@ -224,7 +223,7 @@ func (s *Int64Series) Copy() *Int64Series {
 	sorted := make([]int64, len(s.sorted))
 	copy(sorted, s.sorted)
 
-	return &Int64Series{
+	return &Series{
 		points:   points,
 		sorted:   sorted,
 		unsorted: make([]int64, 0),
@@ -234,6 +233,6 @@ func (s *Int64Series) Copy() *Int64Series {
 // Equals returns true if s and s0 have the same set of stored points.
 // Equals does *not* ignore redundant points, and it generally advisable
 // to compact both series before checking equality.
-func (s *Int64Series) Equals(s0 *Int64Series) bool {
+func (s *Series) Equals(s0 *Series) bool {
 	return reflect.DeepEqual(s.points, s0.points)
 }

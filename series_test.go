@@ -65,14 +65,14 @@ func assert(t *testing.T, message string, expected, got interface{}) {
 }
 
 // The most important thing this set of tests can do is to ensure that
-// Int64Series objects are always internally consistent.
+// Series objects are always internally consistent.
 //
 // Function assertConsistent checks that the keys (x values) in s.points
 // match s.sorted and s.unsorted exactly.  It also checks that the sorted
 // points are indeed sorted.
 //
 // Tests should call assertConsistent all the time.
-func assertConsistent(t *testing.T, s *Int64Series) {
+func assertConsistent(t *testing.T, s *Series) {
 	// Check that points and sorted+unsorted are 1-to-1.  This also ensures
 	// that there are no dupes in sorted+unsorted.
 	matcher := make(map[int64]struct{})
@@ -105,8 +105,8 @@ func assertConsistent(t *testing.T, s *Int64Series) {
 	}
 }
 
-func TestNewInt64Series(t *testing.T) {
-	s := NewInt64Series()
+func TestNewSeries(t *testing.T) {
+	s := NewSeries()
 	assertConsistent(t, s)
 	assert(t, "Size of a new series", 0, s.Size())
 }
@@ -114,7 +114,7 @@ func TestNewInt64Series(t *testing.T) {
 // Test a few basic oprations with all the test cases
 func TestBasic(t *testing.T) {
 	for _, c := range []testCase{case0, case1, case2, case3, casen, caser} {
-		s := NewInt64SeriesData(c.Points)
+		s := NewSeriesData(c.Points)
 		assertConsistent(t, s)
 		assert(t, "Size of a new series", len(c.Points), s.Size())
 		xs := s.Xs() // this forces a sort
@@ -157,8 +157,8 @@ func TestBasic(t *testing.T) {
 
 func TestSetRemoveCopy(t *testing.T) {
 	for _, c := range []testCase{case0, case1, case2, case3, casen, caser} {
-		s0 := NewInt64SeriesData(c.Points)
-		s1 := NewInt64Series()
+		s0 := NewSeriesData(c.Points)
+		s1 := NewSeries()
 		for x, y := range c.Points {
 			s1.Set(x, y)
 		}
@@ -190,7 +190,7 @@ func TestSetRemoveCopy(t *testing.T) {
 
 func TestCeiling(t *testing.T) {
 	for _, c := range []testCase{case0, case1, case2, case3, casen, caser} {
-		s := NewInt64SeriesData(c.Points)
+		s := NewSeriesData(c.Points)
 		var expectedCeiling int64
 		var ceilingOk bool
 		// iterate Floors backwards for ceilings
@@ -209,24 +209,24 @@ func TestCeiling(t *testing.T) {
 }
 
 func TestCompact(t *testing.T) {
-	s0 := NewInt64SeriesData(caser.Points)
-	s1 := NewInt64SeriesData(caserc.Points)
+	s0 := NewSeriesData(caser.Points)
+	s1 := NewSeriesData(caserc.Points)
 	if s0.Equals(s1) {
-		t.Errorf("Ccompact - expected %v to differ from %v", s1, s0)
+		t.Errorf("Compact - expected %v to differ from %v", s1, s0)
 	}
 	s0.Compact()
 	assertConsistent(t, s0)
 	if !s0.Equals(s1) {
-		t.Errorf("Ccompact - expected %v, got %v", s1, s0)
+		t.Errorf("Compact - expected %v, got %v", s1, s0)
 	}
 
 	// a little extra beating
 	for _, c := range []testCase{case0, case1, case2, case3, casen} {
-		sRef := NewInt64SeriesData(c.Points)
+		sRef := NewSeriesData(c.Points)
 		sRef.Compact()
 		assertConsistent(t, sRef)
 
-		sBloat := NewInt64SeriesData(c.Points)
+		sBloat := NewSeriesData(c.Points)
 		// this adds a bunch of redundant points
 		x0 := sRef.X0()
 		for _, x := range c.Floors {
