@@ -8,6 +8,7 @@ import (
 // Series represents a discrete function f(x)=y with a collection of
 // (x, y) pairs.  Each (x, y) pair represents a transition, i.e. if (x₀, y₀)
 // and (x₁, y₁) are consecute pairs, then f(x)=y₀ for x₀ ≤ x < x₁.
+// All x and y values are int64.
 type Series struct {
 	points   map[int64]int64
 	sorted   []int64
